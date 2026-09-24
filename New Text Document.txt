@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>باك اند موف | Pack & Move</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Tajawal',sans-serif;background:#f1f5f9;color:#0f172a;direction:rtl}
+.container{max-width:1600px;margin:0 auto;padding:20px}
+.header{background:linear-gradient(135deg,#0a1a2f 0%,#1e3a5f 100%);color:#fff;padding:1rem 0;box-shadow:0 4px 20px rgba(0,0,0,.1);position:sticky;top:0;z-index:100}
+.header .container{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+.logo{font-size:1.8rem;font-weight:800}
+.logo span{color:#B10622}
+.logo small{font-size:.7rem;display:block;color:#cbd5e1}
+.tabs{display:flex;gap:10px;margin-bottom:25px;flex-wrap:wrap;background:#fff;padding:12px 20px;border-radius:60px;box-shadow:0 4px 12px rgba(0,0,0,.05)}
+.tab-btn{background:#e2e8f0;color:#1e293b;border:none;padding:10px 28px;border-radius:40px;font-weight:bold;cursor:pointer;transition:.2s;font-family:inherit}
+.tab-btn.active{background:#0a1a2f;color:#fff}
+.tab-btn:hover:not(.active){background:#cbd5e1}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:15px;margin-bottom:25px}
+.stat-card{background:#fff;border-radius:20px;padding:15px;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,.05)}
+.stat-card i{font-size:1.8rem;color:#B10622;margin-bottom:8px}
+.stat-card h3{font-size:1.4rem;font-weight:800}
+.stat-card p{font-size:.75rem;color:#64748b}
+.date-selector{background:#fff;border-radius:28px;padding:20px;margin-bottom:25px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:15px;box-shadow:0 8px 20px rgba(0,0,0,.08)}
+.date-nav{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.date-nav button{background:#0a1a2f;color:#fff;border:none;padding:10px 20px;border-radius:40px;cursor:pointer;font-size:1rem;font-family:inherit}
+.date-nav button:hover{background:#B10622}
+.current-date-box{background:#f1f5f9;padding:10px 25px;border-radius:40px;font-weight:bold;font-size:1.1rem}
+.date-nav input{padding:10px 15px;border:1px solid #cbd5e1;border-radius:40px;font-family:inherit}
+.trucks-dashboard{background:#fff;border-radius:28px;padding:25px;margin-bottom:30px;box-shadow:0 8px 20px rgba(0,0,0,.08)}
+.section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px}
+.trucks-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:15px}
+.truck-card{background:#f8fafc;border-radius:20px;padding:15px;text-align:center;cursor:pointer;transition:.2s;border:2px solid transparent}
+.truck-card:hover{transform:translateY(-3px);box-shadow:0 6px 14px rgba(0,0,0,.1)}
+.truck-card.available{background:linear-gradient(145deg,#dcfce7,#bbf7d0);border-color:#16a34a}
+.truck-card.booked{background:linear-gradient(145deg,#fee2e2,#fecaca);border-color:#dc2626}
+.truck-card.off{background:linear-gradient(145deg,#e2e8f0,#cbd5e1);border-color:#64748b;opacity:.7;cursor:not-allowed}
+.truck-number{font-size:1.3rem;font-weight:800}
+.truck-status{font-size:.75rem;margin-top:8px}
+.truck-time-info{font-size:.7rem;margin-top:5px;color:#475569}
+.times-slots{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0}
+.time-slot{background:#f8fafc;padding:10px 20px;border-radius:40px;font-size:.85rem;cursor:pointer;transition:.2s;border:2px solid transparent}
+.time-slot.available{background:#dcfce7;color:#166534;border-color:#16a34a}
+.time-slot.booked{background:#fee2e2;color:#991b1b;border-color:#dc2626;cursor:not-allowed;opacity:.7}
+.time-slot:hover:not(.booked){transform:scale(1.02);background:#bbf7d0}
+.client-page{background:#fff;border-radius:32px;padding:25px;margin-bottom:30px;box-shadow:0 10px 30px rgba(0,0,0,.08)}
+.client-info{background:#f8fafc;border-radius:24px;padding:20px;margin-bottom:25px;border-right:5px solid #B10622}
+.status-badge{display:inline-block;padding:6px 16px;border-radius:40px;font-size:.8rem;font-weight:bold}
+.status-confirmed{background:#dcfce7;color:#166534}
+.status-pending{background:#fed7aa;color:#9a3412}
+.status-cancelled{background:#fee2e2;color:#991b1b}
+.status-delivered{background:#bfdbfe;color:#1e40af}
+.calendar{background:#fff;border-radius:28px;padding:20px;margin-top:20px}
+.calendar-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;text-align:center}
+.calendar-day{padding:12px;border-radius:16px;background:#f1f5f9;cursor:pointer;transition:.2s}
+.calendar-day.booked{background:#dc2626;color:#fff}
+.calendar-day.available{background:#16a34a;color:#fff}
+.calendar-day.partial{background:#eab308;color:#fff}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:15px;margin-bottom:20px}
+input,select,textarea{width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:16px;font-family:inherit;font-size:.95rem}
+button{background:#0a1a2f;color:#fff;border:none;padding:10px 20px;border-radius:40px;font-weight:bold;cursor:pointer;font-family:inherit}
+button:hover{background:#B10622}
+.btn-excel{background:#1e6f3f}
+table{width:100%;border-collapse:collapse}
+th,td{border:1px solid #e2e8f0;padding:8px;text-align:center;font-size:.8rem}
+th{background:#0a1a2f;color:#fff}
+.search-box{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px}
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:1000;justify-content:center;align-items:center;padding:15px}
+.modal-content{background:#fff;border-radius:28px;padding:25px;max-width:600px;width:90%;max-height:85vh;overflow-y:auto}
+.modal-content.wide{max-width:900px}
+.history-note{font-size:.65rem;color:#64748b;margin-top:3px;max-width:150px}
+.email-settings{background:#f8fafc;padding:15px 20px;border-radius:20px;margin-bottom:20px;border-right:4px solid #B10622}
+.email-list{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+.email-tag{background:#e2e8f0;padding:5px 12px;border-radius:30px;font-size:.8rem;display:inline-flex;align-items:center;gap:8px}
+.email-tag i{cursor:pointer;color:#dc2626}
+.report-buttons{display:flex;gap:15px;flex-wrap:wrap;margin:20px 0}
+body.dark-mode{background:#0b1220;color:#e2e8f0}
+body.dark-mode .header{background:linear-gradient(135deg,#050b17 0%,#0f1e33 100%)}
+body.dark-mode .tabs,body.dark-mode .date-selector,body.dark-mode .trucks-dashboard,body.dark-mode .client-page,body.dark-mode .calendar,body.dark-mode .stat-card,body.dark-mode .modal-content,body.dark-mode .email-settings{background:#111c30;color:#e2e8f0}
+body.dark-mode .tab-btn{background:#1e2a44;color:#cbd5e1}
+body.dark-mode .tab-btn.active{background:#B10622;color:#fff}
+body.dark-mode input,body.dark-mode select,body.dark-mode textarea{background:#0b1220;color:#e2e8f0;border-color:#334155}
+body.dark-mode .current-date-box,body.dark-mode .client-info,body.dark-mode #dailySummary{background:#0b1220;color:#e2e8f0}
+body.dark-mode table th{background:#0b1220}
+body.dark-mode table td{border-color:#1e293b}
+.settings-btn{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.25);padding:8px 16px;border-radius:40px;cursor:pointer;font-weight:bold;display:inline-flex;align-items:center;gap:8px}
+.settings-btn:hover{background:#B10622;border-color:#B10622}
+.switch{position:relative;display:inline-block;width:54px;height:28px}
+.switch input{opacity:0;width:0;height:0}
+.slider{position:absolute;cursor:pointer;inset:0;background:#cbd5e1;transition:.3s;border-radius:34px}
+.slider:before{content:"";position:absolute;height:20px;width:20px;left:4px;bottom:4px;background:#fff;transition:.3s;border-radius:50%}
+.switch input:checked+.slider{background:#16a34a}
+.switch input:checked+.slider:before{transform:translateX(26px)}
+.settings-section{background:#f8fafc;border-radius:18px;padding:15px 18px;margin-bottom:15px;border-right:4px solid #B10622}
+body.dark-mode .settings-section{background:#0b1220}
+.settings-section h4{margin-bottom:12px;font-size:1rem}
+.settings-row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.settings-row label{font-size:.9rem;font-weight:bold}
+.settings-row input[type="number"],.settings-row input[type="text"]{width:110px;padding:8px 10px;border-radius:12px}
+.area-list{display:flex;flex-wrap:wrap;gap:6px;max-height:140px;overflow-y:auto;padding:8px;background:#fff;border-radius:12px}
+body.dark-mode .area-list{background:#111c30}
+.area-chip{background:#e2e8f0;padding:4px 10px;border-radius:20px;font-size:.75rem;display:inline-flex;align-items:center;gap:6px}
+body.dark-mode .area-chip{background:#1e2a44;color:#cbd5e1}
+.area-chip i{cursor:pointer;color:#dc2626}
+.price-badge{font-size:.7rem;background:#16a34a;color:#fff;padding:2px 6px;border-radius:10px}
+.login-overlay{position:fixed;inset:0;background:linear-gradient(135deg,#0a1a2f 0%,#1e3a5f 50%,#B10622 100%);display:flex;justify-content:center;align-items:center;z-index:9999;padding:20px}
+.login-box{background:#fff;border-radius:30px;padding:40px 35px;max-width:420px;width:100%;box-shadow:0 30px 60px rgba(0,0,0,.3);text-align:center}
+.login-box .login-logo{font-size:1.8rem;font-weight:800;color:#0a1a2f;margin-bottom:5px}
+.login-box .login-logo span{color:#B10622}
+.login-box .login-sub{color:#64748b;font-size:.85rem;margin-bottom:25px}
+.login-box .login-icon{font-size:3.5rem;color:#B10622;margin-bottom:15px}
+.login-box h2{font-size:1.3rem;margin-bottom:20px;color:#0a1a2f}
+.login-field{margin-bottom:15px;text-align:right}
+.login-field label{display:block;font-size:.85rem;font-weight:bold;margin-bottom:6px;color:#334155}
+.login-field input{width:100%;padding:14px 18px;border:2px solid #e2e8f0;border-radius:16px;font-family:inherit;font-size:1rem}
+.login-field input:focus{outline:none;border-color:#B10622}
+.login-btn{width:100%;padding:14px;background:#0a1a2f;color:#fff;border:none;border-radius:16px;font-size:1rem;font-weight:bold;cursor:pointer;margin-top:10px;font-family:inherit}
+.login-btn:hover{background:#B10622}
+.login-error{background:#fee2e2;color:#991b1b;padding:10px;border-radius:12px;font-size:.85rem;margin-bottom:15px;display:none}
+.login-hint{margin-top:20px;padding-top:20px;border-top:1px dashed #e2e8f0;font-size:.75rem;color:#64748b;text-align:right}
+.login-hint summary{cursor:pointer;font-weight:bold;color:#B10622;margin-bottom:8px}
+.login-hint code{background:#f1f5f9;padding:2px 6px;border-radius:6px;font-size:.7rem;direction:ltr;display:inline-block;margin:2px 0}
+.user-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.15);padding:6px 14px;border-radius:40px;font-size:.85rem;border:1px solid rgba(255,255,255,.25)}
+.user-badge .role-tag{background:#B10622;padding:2px 8px;border-radius:12px;font-size:.7rem;font-weight:bold}
+.user-badge .role-tag.admin{background:#7c3aed}
+.user-badge .role-tag.booking{background:#0891b2}
+.user-badge .role-tag.survey{background:#16a34a}
+.user-badge .role-tag.driver{background:#eab308;color:#000}
+.logout-btn{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.25);padding:6px 12px;border-radius:40px;cursor:pointer;font-size:.8rem;font-weight:bold}
+.logout-btn:hover{background:#dc2626;border-color:#dc2626}
+body:not(.role-admin) .admin-only{display:none!important}
+.audit-filter{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:15px}
+.audit-filter input,.audit-filter select{width:auto;padding:8px 14px;font-size:.85rem}
+.audit-action{font-weight:bold;padding:3px 10px;border-radius:12px;font-size:.75rem;display:inline-block}
+.audit-create{background:#dcfce7;color:#166534}
+.audit-update{background:#fed7aa;color:#9a3412}
+.audit-delete{background:#fee2e2;color:#991b1b}
+.audit-login{background:#c7d2fe;color:#3730a3}
+.audit-logout{background:#e2e8f0;color:#475569}
+.badge-active{background:#dcfce7;color:#166534;padding:3px 10px;border-radius:12px;font-size:.75rem}
+.badge-inactive{background:#fee2e2;color:#991b1b;padding:3px 10px;border-radius:12px;font-size:.75rem}
+.materials-table{width:100%;border-collapse:collapse;margin:10px 0;background:#fff;border-radius:12px;overflow:hidden}
+.materials-table th{background:#0a1a2f;color:#fff;padding:8px 5px;font-size:.8rem}
+.materials-table td{border:1px solid #e2e8f0;padding:5px;text-align:center;font-size:.85rem}
+.materials-table input[type="number"]{width:70px;padding:6px;text-align:center;border-radius:8px;border:1px solid #cbd5e1;font-family:inherit}
+.materials-table .mat-total{font-weight:bold;color:#0a1a2f}
+.mat-scroll{max-height:320px;overflow-y:auto;border-radius:12px;border:1px solid #e2e8f0}
+.mat-scroll .materials-table{border-radius:0;margin:0}
+.grand-total-box{background:linear-gradient(135deg,#0a1a2f,#1e3a5f);color:#fff;padding:15px 20px;border-radius:16px;text-align:center;font-size:1.1rem;font-weight:bold;margin:15px 0}
+.grand-total-box .amount{color:#fbbf24;font-size:1.5rem}
+.materials-list-inline{font-size:.75rem;text-align:right;line-height:1.5}
+.materials-list-inline .mat-line{background:#f1f5f9;padding:2px 6px;border-radius:6px;display:inline-block;margin:1px}
+@media (max-width:700px){.trucks-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}.calendar-day{padding:6px;font-size:.65rem}.date-nav button{padding:6px 12px;font-size:.8rem}.time-slot{padding:6px 12px;font-size:.7rem}.modal-content.wide{max-width:100%}.materials-table th,.materials-table td{font-size:.7rem;padding:4px 2px}.materials-table input[type="number"]{width:55px;padding:4px}}
+</style>
+</head>
+<body>
+
+<!-- Login -->
+<div id="loginOverlay" class="login-overlay">
+<div class="login-box">
+<div class="login-icon"><i class="fas fa-truck-moving"></i></div>
+<div class="login-logo">باك اند موف <span>Pack & Move</span></div>
+<div class="login-sub">نظام إدارة النقل المتكامل</div>
+<h2><i class="fas fa-lock"></i> تسجيل الدخول</h2>
+<div class="login-error" id="loginError"></div>
+<form id="loginForm">
+<div class="login-field"><label>البريد الإلكتروني</label><input type="email" id="loginEmail" placeholder="admin@packmove.com" required></div>
+<div class="login-field"><label>كلمة المرور</label><input type="password" id="loginPassword" placeholder="••••••••" required></div>
+<button type="submit" class="login-btn"><i class="fas fa-sign-in-alt"></i> دخول</button>
+</form>
+<div class="login-hint">
+<details><summary>بيانات الدخول</summary>
+<div>👑 <code>admin@packmove.com</code> / <code>admin123</code></div>
+<div>📅 <code>booking@packmove.com</code> / <code>booking123</code></div>
+<div>📋 <code>survey@packmove.com</code> / <code>survey123</code></div>
+<div>🚛 <code>driver@packmove.com</code> / <code>driver123</code></div>
+</details>
+</div>
+</div>
+</div>
+
+<div class="header">
+<div class="container">
+<div class="logo">باك اند موف <span>Pack & Move</span><small>نظام متكامل - نقل . معاينة . توصيل</small></div>
+<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+<span id="customerService"><i class="fas fa-headset"></i> خدمة العملاء</span>
+<div class="user-badge" id="userBadge" style="display:none;">
+<i class="fas fa-user-circle"></i><span id="userNameSpan">-</span>
+<span class="role-tag" id="userRoleTag">-</span>
+<button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i></button>
+</div>
+<button class="settings-btn admin-only" id="openSettingsBtn"><i class="fas fa-cog"></i> الإعدادات</button>
+</div>
+</div>
+</div>
+
+<div class="container">
+<div class="email-settings admin-only">
+<div><i class="fas fa-envelope"></i> <strong>إشعارات البريد</strong></div>
+<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">
+<input type="email" id="newEmailInput" placeholder="بريد موظف" style="width:250px;">
+<button id="addEmailBtn"><i class="fas fa-plus"></i> إضافة</button>
+</div>
+<div class="email-list" id="emailList"></div>
+<div><small id="emailCount" style="color:#64748b;"></small></div>
+</div>
+
+<div class="tabs">
+<button class="tab-btn active" data-tab="moving">🚛 النقل</button>
+<button class="tab-btn" data-tab="survey">📋 المعاينة</button>
+<button class="tab-btn" data-tab="delivery">📦 التوصيل</button>
+<button class="tab-btn admin-only" data-tab="report">📊 التقارير</button>
+<button class="tab-btn admin-only" data-tab="users">👥 المستخدمين</button>
+<button class="tab-btn admin-only" data-tab="audit">📝 سجل الحركات</button>
+</div>
+
+<!-- Moving Tab -->
+<div id="movingTab" class="tab-content">
+<div class="stats-grid" id="movingStats"></div>
+<div class="date-selector">
+<div class="date-nav">
+<button id="movingPrevDay"><i class="fas fa-chevron-right"></i> السابق</button>
+<button id="movingNextDay">التالي <i class="fas fa-chevron-left"></i></button>
+</div>
+<div class="current-date-box" id="movingCurrentDate"></div>
+<div class="date-nav">
+<input type="date" id="movingDatePicker">
+<button id="movingGoToDate"><i class="fas fa-calendar-day"></i> عرض</button>
+<button id="movingToday"><i class="fas fa-sun"></i> اليوم</button>
+</div>
+</div>
+<div class="trucks-dashboard">
+<div id="driverTruckInfo" style="display:none;margin-bottom:15px;padding:12px 20px;background:#fef3c7;border-radius:16px;border-right:4px solid #eab308;">
+<i class="fas fa-truck"></i> أنت المسؤول عن: <strong id="driverTruckName">-</strong>
+</div>
+<div class="section-header"><h3><i class="fas fa-truck"></i> حالة السيارات - <span id="movingSelectedDate"></span></h3></div>
+<div class="trucks-grid" id="trucksGrid"></div>
+</div>
+<div class="client-page">
+<div class="search-box">
+<input type="text" id="searchMoving" placeholder="بحث...">
+<button id="searchMovingBtn"><i class="fas fa-search"></i> بحث</button>
+<button id="showAllMovingBtn"><i class="fas fa-list"></i> عرض الكل</button>
+<button id="newMovingBtn" style="background:#B10622;"><i class="fas fa-plus"></i> حجز جديد</button>
+</div>
+<div id="movingHistorySection">
+<h3><i class="fas fa-history"></i> هيستوري العميل</h3>
+<div id="movingSelectedInfo" class="client-info" style="display:none;"></div>
+<div style="overflow-x:auto;">
+<table id="movingHistoryTable"><thead><tr><th>#</th><th>التاريخ</th><th>الموعد</th><th>السيارة</th><th>من</th><th>إلى</th><th>الدروب</th><th>السعر/درب</th><th>الإجمالي</th><th>الحالة</th><th>الملاحظات</th><th>سجل التعديلات</th><th>إجراءات</th></tr></thead><tbody id="movingHistoryBody"></tbody></table>
+</div>
+</div>
+<div id="movingAllClients" style="display:none;">
+<h3><i class="fas fa-users"></i> جميع العملاء</h3>
+<div style="overflow-x:auto;">
+<table id="movingAllTable"><thead><tr><th>#</th><th>الاسم</th><th>الجوال</th><th>عدد الحجوزات</th><th>آخر حجز</th><th>الإجمالي</th><th>إجراءات</th></tr></thead><tbody id="movingAllBody"></tbody></table>
+</div>
+</div>
+</div>
+<div class="calendar">
+<div class="calendar-header">
+<button id="movingPrevMonth"><i class="fas fa-chevron-right"></i></button>
+<h3 id="movingCurrentMonthYear"></h3>
+<button id="movingNextMonth"><i class="fas fa-chevron-left"></i></button>
+</div>
+<div class="calendar-grid" id="movingCalendarGrid"></div>
+</div>
+</div>
+
+<!-- Survey Tab -->
+<div id="surveyTab" class="tab-content" style="display:none;">
+<div class="stats-grid" id="surveyStats"></div>
+<div class="date-selector">
+<div class="date-nav">
+<button id="surveyPrevDay"><i class="fas fa-chevron-right"></i> السابق</button>
+<button id="surveyNextDay">التالي <i class="fas fa-chevron-left"></i></button>
+</div>
+<div class="current-date-box" id="surveyCurrentDate"></div>
+<div class="date-nav">
+<input type="date" id="surveyDatePicker">
+<button id="surveyGoToDate"><i class="fas fa-calendar-day"></i> عرض</button>
+<button id="surveyToday"><i class="fas fa-sun"></i> اليوم</button>
+</div>
+</div>
+<div class="client-page">
+<div class="section-header"><h3><i class="fas fa-clock"></i> مواعيد المعاينة - <span id="surveySelectedDate"></span></h3></div>
+<div class="times-slots" id="surveyTimeSlots"></div>
+</div>
+<div class="client-page">
+<div class="search-box">
+<input type="text" id="searchSurvey" placeholder="بحث...">
+<button id="searchSurveyBtn"><i class="fas fa-search"></i> بحث</button>
+<button id="newSurveyBtn" style="background:#B10622;"><i class="fas fa-plus"></i> معاينة جديدة</button>
+</div>
+<div style="overflow-x:auto;">
+<table id="surveyTable"><thead><tr><th>#</th><th>العميل</th><th>الجوال</th><th>العنوان</th><th>الموعد</th><th>الملاحظات</th><th>إجراءات</th></tr></thead><tbody id="surveyTbody"></tbody></table>
+</div>
+</div>
+</div>
+
+<!-- Delivery Tab -->
+<div id="deliveryTab" class="tab-content" style="display:none;">
+<div class="stats-grid" id="deliveryStats"></div>
+<div class="date-selector">
+<div class="date-nav">
+<button id="deliveryPrevDay"><i class="fas fa-chevron-right"></i> السابق</button>
+<button id="deliveryNextDay">التالي <i class="fas fa-chevron-left"></i></button>
+</div>
+<div class="current-date-box" id="deliveryCurrentDate"></div>
+<div class="date-nav">
+<input type="date" id="deliveryDatePicker">
+<button id="deliveryGoToDate"><i class="fas fa-calendar-day"></i> عرض</button>
+<button id="deliveryToday"><i class="fas fa-sun"></i> اليوم</button>
+</div>
+</div>
+<div class="client-page">
+<div class="section-header"><h3><i class="fas fa-clock"></i> مواعيد التوصيل - <span id="deliverySelectedDate"></span></h3></div>
+<div class="times-slots" id="deliveryTimeSlots"></div>
+</div>
+<div class="client-page">
+<div class="search-box">
+<input type="text" id="searchDelivery" placeholder="بحث...">
+<button id="searchDeliveryBtn"><i class="fas fa-search"></i> بحث</button>
+<button id="newDeliveryBtn" style="background:#B10622;"><i class="fas fa-plus"></i> طلب مواد جديد</button>
+</div>
+<div style="overflow-x:auto;">
+<table id="deliveryTable"><thead><tr><th>#</th><th>العميل</th><th>الجوال</th><th>العنوان</th><th>الموعد</th><th>المواد</th><th>الإجمالي</th><th>الحالة</th><th>إجراءات</th></tr></thead><tbody id="deliveryTbody"></tbody></table>
+</div>
+</div>
+</div>
+
+<!-- Report Tab -->
+<div id="reportTab" class="tab-content" style="display:none;">
+<div class="client-page">
+<h3><i class="fas fa-file-excel"></i> Daily Report</h3>
+<div class="form-grid"><input type="date" id="reportDate"></div>
+<div class="report-buttons">
+<button id="exportMovingReport" class="btn-excel"><i class="fas fa-truck"></i> تقرير النقل</button>
+<button id="exportSurveyReport" class="btn-excel"><i class="fas fa-clipboard-list"></i> تقرير المعاينة</button>
+<button id="exportDeliveryReport" class="btn-excel"><i class="fas fa-box"></i> تقرير التوصيل</button>
+<button id="exportTeamsReport" class="btn-excel"><i class="fas fa-users"></i> متابعة الفرق</button>
+</div>
+<h3 style="margin-top:25px;"><i class="fas fa-chart-line"></i> متابعة الفرق</h3>
+<div style="overflow-x:auto;">
+<table id="teamsReportTable"><thead><tr><th>الفريق</th><th>عدد الدروب</th><th>العميل</th><th>من</th><th>إلى</th><th>الموعد</th></tr></thead><tbody id="teamsReportBody"></tbody></table>
+</div>
+<h3 style="margin-top:25px;"><i class="fas fa-calendar-alt"></i> ملخص اليوم</h3>
+<div id="dailySummary" style="background:#f1f5f9;padding:15px;border-radius:20px;"></div>
+</div>
+</div>
+
+<!-- Users Tab -->
+<div id="usersTab" class="tab-content" style="display:none;">
+<div class="client-page">
+<div class="section-header">
+<h3><i class="fas fa-users-cog"></i> إدارة المستخدمين</h3>
+<button id="addUserBtn" style="background:#B10622;"><i class="fas fa-user-plus"></i> مستخدم جديد</button>
+</div>
+<div class="search-box"><input type="text" id="searchUser" placeholder="بحث..."></div>
+<div style="overflow-x:auto;">
+<table id="usersTable"><thead><tr><th>#</th><th>الاسم</th><th>الإيميل</th><th>الدور</th><th>السيارة</th><th>الحالة</th><th>آخر دخول</th><th>إجراءات</th></tr></thead><tbody id="usersTbody"></tbody></table>
+</div>
+</div>
+</div>
+
+<!-- Audit Tab -->
+<div id="auditTab" class="tab-content" style="display:none;">
+<div class="client-page">
+<div class="section-header">
+<h3><i class="fas fa-history"></i> سجل الحركات</h3>
+<button id="clearAuditBtn" style="background:#dc2626;"><i class="fas fa-trash"></i> مسح</button>
+</div>
+<div class="audit-filter">
+<input type="text" id="auditSearch" placeholder="بحث...">
+<select id="auditFilterAction">
+<option value="">كل الحركات</option>
+<option value="create">إضافة</option>
+<option value="update">تعديل</option>
+<option value="delete">حذف</option>
+<option value="login">دخول</option>
+<option value="logout">خروج</option>
+<option value="export">تصدير</option>
+</select>
+<select id="auditFilterUser"><option value="">كل المستخدمين</option></select>
+<input type="date" id="auditFilterDate">
+<button id="auditClearFilters" style="background:#64748b;"><i class="fas fa-times"></i> مسح</button>
+</div>
+<div style="overflow-x:auto;">
+<table id="auditTable"><thead><tr><th>#</th><th>التاريخ</th><th>المستخدم</th><th>الدور</th><th>الحركة</th><th>النوع</th><th>التفاصيل</th></tr></thead><tbody id="auditTbody"></tbody></table>
+</div>
+<div style="margin-top:15px;text-align:center;color:#64748b;font-size:.85rem;" id="auditCount"></div>
+</div>
+</div>
+</div>
+
+<!-- Booking Modal -->
+<div id="bookingModal" class="modal">
+<div class="modal-content">
+<h3 id="modalTitle"><i class="fas fa-truck"></i> حجز جديد</h3>
+<div class="form-grid" style="grid-template-columns:1fr;">
+<input type="text" id="modalClientName" placeholder="اسم العميل *">
+<input type="tel" id="modalClientPhone" placeholder="رقم الجوال *">
+<select id="modalFromArea"><option value="">-- من --</option></select>
+<select id="modalToArea"><option value="">-- إلى --</option></select>
+<input type="date" id="modalMoveDate" required>
+<select id="modalTimeSlot"><option value="صباحاً">صباحاً (9:30)</option><option value="مساءً">مساءً (4:30)</option></select>
+<select id="modalNumDroops">
+<option value="1">1 درب</option><option value="2">2 دروب</option><option value="3">3 دروب</option>
+<option value="4">4 دروب</option><option value="5">5 دروب</option><option value="6">6 دروب</option>
+<option value="7">7 دروب</option><option value="8">8 دروب</option><option value="9">9 دروب</option>
+</select>
+<select id="modalTruck"><option value="">-- اختر السيارة --</option></select>
+<select id="modalStatus">
+<option value="confirmed">✅ تم التأكيد</option>
+<option value="pending">⏳ انتظار</option>
+<option value="cancelled">❌ كنسل</option>
+<option value="rescheduled">🔄 مؤجل</option>
+</select>
+<textarea id="modalNotes" placeholder="ملاحظات..." rows="2"></textarea>
+<div id="modalPriceDisplay" style="background:#f1f5f9;padding:10px;border-radius:16px;text-align:center;"></div>
+<button id="confirmBookingBtn"><i class="fas fa-save"></i> حفظ الحجز</button>
+</div>
+<button onclick="closeModal()" style="margin-top:10px;background:#64748b;width:100%;">إلغاء</button>
+</div>
+</div>
+
+<!-- Delivery Modal -->
+<div id="deliveryModal" class="modal">
+<div class="modal-content wide">
+<h3 id="deliveryModalTitle"><i class="fas fa-box-open"></i> طلب مواد تغليف جديد</h3>
+<div class="form-grid" style="grid-template-columns:1fr 1fr;">
+<input type="text" id="dmClientName" placeholder="اسم العميل *">
+<input type="tel" id="dmClientPhone" placeholder="رقم الجوال *">
+<input type="text" id="dmAddress" placeholder="العنوان *" style="grid-column:1/-1;">
+<input type="date" id="dmDate" required>
+<select id="dmTimeSlot"></select>
+<select id="dmStatus">
+<option value="confirmed">✅ تم التأكيد</option>
+<option value="pending">⏳ انتظار</option>
+<option value="cancelled">❌ كنسل</option>
+<option value="delivered">🚚 تم التوصيل</option>
+</select>
+</div>
+<h4 style="margin:15px 0 10px;font-size:.95rem;"><i class="fas fa-list"></i> اختر المواد والكميات</h4>
+<div class="mat-scroll">
+<table class="materials-table" id="dmMaterialsTable">
+<thead><tr><th style="width:35%;">المادة</th><th style="width:12%;">الوحدة</th><th style="width:15%;">السعر</th><th style="width:18%;">الكمية</th><th style="width:20%;">الإجمالي</th></tr></thead>
+<tbody id="dmMaterialsBody"></tbody>
+</table>
+</div>
+<div class="grand-total-box">💰 الإجمالي: <span class="amount" id="dmGrandTotal">0.000</span> د.ك</div>
+<textarea id="dmNotes" placeholder="ملاحظات..." rows="2"></textarea>
+<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:15px;">
+<button id="saveDeliveryBtn" style="flex:1;background:#16a34a;"><i class="fas fa-save"></i> حفظ الطلب</button>
+<button onclick="closeDeliveryModal()" style="background:#64748b;">إلغاء</button>
+</div>
+</div>
+</div>
+
+<!-- Settings Modal -->
+<div id="settingsModal" class="modal">
+<div class="modal-content" style="max-width:700px;">
+<h3 style="margin-bottom:15px;"><i class="fas fa-cog"></i> الإعدادات</h3>
+<div class="settings-section">
+<div class="settings-row"><label><i class="fas fa-moon"></i> الوضع الليلي</label><label class="switch"><input type="checkbox" id="darkModeToggle"><span class="slider"></span></label></div>
+</div>
+<div class="settings-section">
+<h4><i class="fas fa-truck"></i> عدد السيارات</h4>
+<div class="settings-row"><label>العدد: <span id="trucksCountLabel"></span></label><input type="number" id="trucksCountInput" min="1" max="60"></div>
+<button id="saveTrucksCount" style="padding:6px 14px;font-size:.85rem;">حفظ</button>
+</div>
+<div class="settings-section">
+<h4><i class="fas fa-money-bill-wave"></i> الأسعار</h4>
+<div class="settings-row"><label>فئة B</label><input type="number" id="priceB" min="0"></div>
+<div class="settings-row"><label>فئة C</label><input type="number" id="priceC" min="0"></div>
+<div class="settings-row"><label>فئة D</label><input type="number" id="priceD" min="0"></div>
+<button id="savePrices" style="padding:6px 14px;font-size:.85rem;">حفظ</button>
+</div>
+<div class="settings-section">
+<h4><i class="fas fa-clock"></i> المواعيد</h4>
+<div class="settings-row"><label>المعاينة</label></div>
+<input type="text" id="surveyTimesInput" style="width:100%;margin-bottom:10px;">
+<div class="settings-row"><label>التوصيل</label></div>
+<input type="text" id="deliveryTimesInput" style="width:100%;margin-bottom:10px;">
+<button id="saveTimes" style="padding:6px 14px;font-size:.85rem;">حفظ</button>
+</div>
+<div class="settings-section">
+<h4><i class="fas fa-map-marker-alt"></i> المناطق</h4>
+<div class="settings-row">
+<input type="text" id="newAreaName" placeholder="اسم المنطقة" style="flex:1;min-width:150px;width:auto;">
+<select id="newAreaCategory" style="width:120px;"><option value="B">B</option><option value="C">C</option><option value="D">D</option></select>
+<button id="addAreaBtn" style="padding:6px 14px;font-size:.85rem;">إضافة</button>
+</div>
+<div class="area-list" id="areaListContainer"></div>
+</div>
+<div class="settings-section">
+<h4><i class="fas fa-box-open"></i> مواد التغليف</h4>
+<div class="settings-row">
+<input type="text" id="newMaterialName" placeholder="اسم المادة" style="flex:1;min-width:150px;width:auto;">
+<select id="newMaterialUnit" style="width:100px;">
+<option value="عدد">عدد</option><option value="رول">رول</option><option value="كرتون">كرتون</option><option value="كيلو">كيلو</option><option value="متر">متر</option>
+</select>
+<input type="number" id="newMaterialPrice" placeholder="السعر" step="0.001" style="width:100px;">
+<button id="addMaterialBtn" style="padding:6px 14px;font-size:.85rem;">إضافة</button>
+</div>
+<div class="area-list" id="materialsListContainer" style="max-height:220px;"></div>
+</div>
+<div class="settings-section" style="border-right-color:#dc2626;">
+<h4 style="color:#dc2626;"><i class="fas fa-exclamation-triangle"></i> الخطر</h4>
+<div class="settings-row"><label>حذف كل البيانات</label><button id="resetDataBtn" style="background:#dc2626;padding:6px 14px;font-size:.85rem;">إعادة تعيين</button></div>
+</div>
+<button onclick="closeSettings()" style="margin-top:10px;background:#64748b;width:100%;">إغلاق</button>
+</div>
+</div>
+
+<!-- User Modal -->
+<div id="userModal" class="modal">
+<div class="modal-content" style="max-width:500px;">
+<h3 id="userModalTitle"><i class="fas fa-user-plus"></i> مستخدم جديد</h3>
+<div class="form-grid" style="grid-template-columns:1fr;">
+<input type="text" id="userName" placeholder="الاسم *">
+<input type="email" id="userEmail" placeholder="الإيميل *">
+<input type="password" id="userPassword" placeholder="كلمة المرور *">
+<select id="userRole">
+<option value="">-- الدور --</option>
+<option value="admin">👑 مدير</option>
+<option value="booking">📅 حجوزات</option>
+<option value="survey">📋 معاينة</option>
+<option value="driver">🚛 سائق</option>
+</select>
+<select id="userTruck" style="display:none;"><option value="">-- السيارة --</option></select>
+<select id="userStatus"><option value="active">✅ نشط</option><option value="inactive">🚫 موقوف</option></select>
+<button id="saveUserBtn"><i class="fas fa-save"></i> حفظ</button>
+</div>
+<button onclick="closeUserModal()" style="margin-top:10px;background:#64748b;width:100%;">إلغاء</button>
+</div>
+</div>
+
+<script>
+// ============= المناطق =============
+let AREAS_PRICE_B=["غرناطة","الصليبخات","النهضة","مدينة جابر الأحمد","القيروان","الدوحة","دسمان","منطقة شرق","الصوابر","المرقاب","القبلة","الصالحية","الوطية","بنيد القار","السالمية","حولي","الجابرية","الرميثية","بيان","مشرف","الشعب","السلام","حطين","الزهراء","ضاحية مبارك العبد الله الجابر","الشهداء","البدع","الصديق","الظهر","الرقة","هدية","الفنطاس","العقيلة","ضاحية جابر العلي","الفروانية","خيطان","الأندلس","الشدادية","الرابية","أشبيليه","الرحاب","جليب الشويخ","الرقعي","العارضية","العارضية الصناعية","صباح الناصر","عبد الله المبارك","الفردوس","الضجيج","غرب عبد الله المبارك الجديدة","صباح السالم","المسيلة","المسايل","العدان","القصور","القرين","أبو الحصانية","أبو فطيرة","صبحان","الفنطيس","سلوى"];
+let AREAS_PRICE_C=["المنقف","أبو حليفة","الصباحية","الأحمدي","الفحيحيل","شرق الأحمدي","علي صباح","المهبولة","الواحة","القصر","الجهراء القديمة","العيون","النسيم","النعيم","التيماء","سعد العبد الله","ضاحية فهد الأحمد"];
+let AREAS_PRICE_D=["ميناء عبد الله","الشعبية","بندر","الزور","الجليعة","النويصيب","الخيران","الوفرة","مدينة صباح الأحمد السكنية","مدينة صباح الأحمد البحرية","المقوع","ميناء الأحمدي","المطلاع","العبدلي","أمغرة","الصبية","السكراب"];
+let ALL_AREAS=[...AREAS_PRICE_B,...AREAS_PRICE_C,...AREAS_PRICE_D];
+let PRICE_B=65,PRICE_C=70,PRICE_D=85;
+
+let MATERIALS=[
+{id:'mat1',name:'65×46×65',unit:'عدد',price:1.500},
+{id:'mat2',name:'45×45×45',unit:'عدد',price:1.250},
+{id:'mat3',name:'102×75×45',unit:'عدد',price:3.000},
+{id:'mat4',name:'45×75×45',unit:'عدد',price:1.500},
+{id:'mat5',name:'43×37×30',unit:'عدد',price:1.000},
+{id:'mat6',name:'60×60×60',unit:'عدد',price:1.750},
+{id:'mat7',name:'Nylone Roll',unit:'رول',price:4.000},
+{id:'mat8',name:'Bubble Roll',unit:'رول',price:2.250},
+{id:'mat9',name:'Double Ply Corrugated',unit:'رول',price:2.750},
+{id:'mat10',name:'Strech Roll',unit:'رول',price:3.750},
+{id:'mat11',name:'Tapes',unit:'عدد',price:0.500},
+{id:'mat12',name:'Delivery',unit:'عدد',price:1.500}
+];
+
+function getAreaPrice(a){if(AREAS_PRICE_B.includes(a))return PRICE_B;if(AREAS_PRICE_C.includes(a))return PRICE_C;if(AREAS_PRICE_D.includes(a))return PRICE_D;return PRICE_B;}
+function calculateTripPrice(f,t){return Math.max(getAreaPrice(f),getAreaPrice(t));}
+
+let TRUCKS=Array.from({length:15},(_,i)=>`MO${i+1}`);
+let SURVEY_TIMES=["9:30 صباحاً","10:30 صباحاً","11:30 صباحاً","12:30 ظهراً","1:30 ظهراً","2:30 عصراً","3:30 عصراً"];
+let DELIVERY_TIMES=["9:30 صباحاً","10:30 صباحاً","11:30 صباحاً","12:30 ظهراً","1:30 ظهراً","2:30 عصراً","3:30 عصراً"];
+
+let movingBookings=[],surveyBookings=[],deliveryBookings=[],trucksOff=[];
+let movingCurrentDate=new Date().toISOString().slice(0,10);
+let surveyCurrentDate=new Date().toISOString().slice(0,10);
+let deliveryCurrentDate=new Date().toISOString().slice(0,10);
+let currentEditId=null,currentDeliveryEditId=null;
+let movingMonth=new Date().getMonth(),movingYear=new Date().getFullYear();
+let emailList=[];
+
+function formatDate(d){return new Date(d).toLocaleDateString('ar-KW',{weekday:'long',year:'numeric',month:'long',day:'numeric'});}
+
+// ============= الإيميلات =============
+function loadEmails(){emailList=JSON.parse(localStorage.getItem("pm_emails")||"[]");renderEmailList();}
+function saveEmails(){localStorage.setItem("pm_emails",JSON.stringify(emailList));renderEmailList();}
+function renderEmailList(){const c=document.getElementById("emailList");if(!c)return;c.innerHTML=emailList.map((e,i)=>`<div class="email-tag"><i class="fas fa-envelope"></i> ${e}<i class="fas fa-times-circle" onclick="removeEmail(${i})"></i></div>`).join('');document.getElementById("emailCount").innerHTML=`📧 عدد: ${emailList.length}`;}
+function addEmail(){const i=document.getElementById("newEmailInput");const e=i.value.trim();if(e&&!emailList.includes(e)){emailList.push(e);saveEmails();i.value="";}else if(emailList.includes(e))alert("مضاف");}
+function removeEmail(i){emailList.splice(i,1);saveEmails();}
+function sendEmailToAll(a,d,t){if(!emailList.length)return;const s=`[باك اند موف] ${a}`;const b=`${a}\n${new Date().toLocaleString('ar-KW')}\n\n${JSON.stringify(d,null,2)}`;window.open(`mailto:${emailList.join(';')}?subject=${encodeURIComponent(s)}&body=${encodeURIComponent(b)}`);}
+
+function isTruckAvailable(t,d,ts,e=null){if(trucksOff.includes(t))return false;return !movingBookings.find(b=>b.truck===t&&b.date===d&&b.timeSlot===ts&&b.id!==e&&(b.status==='confirmed'||b.status==='pending'));}
+
+// ============= Moving =============
+function renderMovingTrucks(){
+const g=document.getElementById("trucksGrid");if(!g)return;g.innerHTML="";
+TRUCKS.forEach(t=>{
+const off=trucksOff.includes(t);
+const mb=movingBookings.some(b=>b.truck===t&&b.date===movingCurrentDate&&b.timeSlot==='صباحاً'&&b.status!=='cancelled');
+const eb=movingBookings.some(b=>b.truck===t&&b.date===movingCurrentDate&&b.timeSlot==='مساءً'&&b.status!=='cancelled');
+let sc='available',st='✅ متاحة';
+if(off){sc='off';st='🔧 إجازة';}else if(mb&&eb){sc='booked';st='📅 محجوزة كامل';}else if(mb){sc='booked';st='📅 محجوزة صباحاً';}else if(eb){sc='booked';st='📅 محجوزة مساءً';}
+const mB=movingBookings.find(b=>b.truck===t&&b.date===movingCurrentDate&&b.timeSlot==='صباحاً');
+const eB=movingBookings.find(b=>b.truck===t&&b.date===movingCurrentDate&&b.timeSlot==='مساءً');
+const c=document.createElement("div");c.className=`truck-card ${sc}`;if(!off)c.onclick=()=>openMovingModal(t);
+c.innerHTML=`<div class="truck-number">${t}</div><div class="truck-status">${st}</div><div class="truck-time-info">${mB?`<div>🌅 ${mB.clientName.substring(0,10)}</div>`:'<div>🌅 متاحة</div>'}${eB?`<div>🌙 ${eB.clientName.substring(0,10)}</div>`:'<div>🌙 متاحة</div>'}</div>`;
+g.appendChild(c);});
+document.getElementById("movingSelectedDate").innerHTML=formatDate(movingCurrentDate);
+document.getElementById("movingCurrentDate").innerHTML=`<i class="fas fa-calendar-alt"></i> ${formatDate(movingCurrentDate)}`;
+document.getElementById("movingDatePicker").value=movingCurrentDate;
+if(currentUser?.role==='driver'){const g2=document.getElementById("trucksGrid");[...g2.children].forEach(c=>{const n=c.querySelector(".truck-number")?.innerText;if(n!==currentUser.truck)c.style.display="none";});}
+}function renderMovingCalendar(){
+const fd=new Date(movingYear,movingMonth,1);const dim=new Date(movingYear,movingMonth+1,0).getDate();const sd=fd.getDay();
+let h='<div class="calendar-grid">';['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'].forEach(d=>h+=`<div style="font-weight:bold;">${d}</div>`);
+for(let i=0;i<sd;i++)h+='<div></div>';
+for(let d=1;d<=dim;d++){const ds=`${movingYear}-${String(movingMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+const cnt=movingBookings.filter(b=>b.date===ds&&(b.status==='confirmed'||b.status==='pending')).length;
+const tot=TRUCKS.length*2;let cls='calendar-day available';if(cnt>=tot*.8)cls='calendar-day booked';else if(cnt>=tot*.4)cls='calendar-day partial';
+h+=`<div class="${cls}" onclick="movingGoToDate('${ds}')">${d}<br><small>${cnt}/${tot}</small></div>`;}
+h+='</div>';document.getElementById("movingCalendarGrid").innerHTML=h;
+document.getElementById("movingCurrentMonthYear").innerHTML=`${fd.toLocaleDateString('ar-KW',{month:'long'})} ${movingYear}`;
+}
+function movingGoToDate(d){movingCurrentDate=d;renderMovingOnly();}
+window.movingGoToDate=movingGoToDate;
+
+function showMovingClientHistory(ph){
+const bs=movingBookings.filter(b=>b.phone===ph).sort((a,b)=>new Date(b.date)-new Date(a.date));
+if(!bs[0])return;
+document.getElementById("movingSelectedInfo").style.display="block";
+document.getElementById("movingSelectedInfo").innerHTML=`<i class="fas fa-user-circle"></i> <strong>${bs[0].clientName}</strong> | ${ph} | ${bs.length} حجز`;
+const tb=document.getElementById("movingHistoryBody");tb.innerHTML="";
+bs.forEach((b,i)=>{const r=tb.insertRow();
+r.insertCell(0).innerText=i+1;r.insertCell(1).innerText=b.date;r.insertCell(2).innerText=b.timeSlot;
+r.insertCell(3).innerText=b.truck;r.insertCell(4).innerText=b.fromArea;r.insertCell(5).innerText=b.toArea;
+r.insertCell(6).innerText=`${b.numDroops} درب`;r.insertCell(7).innerText=`${b.pricePerDrop} د.ك`;
+r.insertCell(8).innerText=`${b.totalPrice} د.ك`;
+const sm={confirmed:'تأكيد',pending:'انتظار',cancelled:'كنسل',rescheduled:'مؤجل'};
+r.insertCell(9).innerHTML=`<span class="status-badge status-${b.status}">${sm[b.status]||b.status}</span>`;
+r.insertCell(10).innerText=b.notes||"-";
+r.insertCell(11).innerHTML=`<div class="history-note">${(b.modifyHistory||'-').substring(0,60)}</div>`;
+r.insertCell(12).innerHTML=`<button onclick="editMovingBooking(${b.id})" style="background:#eab308;padding:4px 8px;">تعديل</button>`;});
+document.getElementById("movingHistorySection").style.display="block";
+document.getElementById("movingAllClients").style.display="none";
+}
+
+function showAllMovingClients(){
+const m=new Map();
+movingBookings.forEach(b=>{if(!m.has(b.phone))m.set(b.phone,{name:b.clientName,phone:b.phone,bookings:[],total:0});const c=m.get(b.phone);c.bookings.push(b);c.total+=b.totalPrice||0;});
+const cs=Array.from(m.values()).sort((a,b)=>b.bookings.length-a.bookings.length);
+const tb=document.getElementById("movingAllBody");tb.innerHTML="";
+cs.forEach((c,i)=>{const l=c.bookings.sort((a,b)=>new Date(b.date)-new Date(a.date))[0];const r=tb.insertRow();
+r.insertCell(0).innerText=i+1;r.insertCell(1).innerText=c.name;r.insertCell(2).innerText=c.phone;
+r.insertCell(3).innerText=c.bookings.length;r.insertCell(4).innerText=l?.date||"-";
+r.insertCell(5).innerText=`${c.total} د.ك`;
+r.insertCell(6).innerHTML=`<button onclick="showMovingClientHistory('${c.phone}')" style="background:#0a1a2f;padding:4px 8px;">عرض</button>`;});
+document.getElementById("movingHistorySection").style.display="none";
+document.getElementById("movingAllClients").style.display="block";
+}
+
+function openMovingModal(t,ex=null){
+currentEditId=ex?.id||null;
+document.getElementById("modalTitle").innerHTML=ex?`✏️ تعديل حجز ${t}`:`➕ حجز جديد - ${t}`;
+if(ex){document.getElementById("modalClientName").value=ex.clientName;document.getElementById("modalClientPhone").value=ex.phone;document.getElementById("modalFromArea").value=ex.fromArea;document.getElementById("modalToArea").value=ex.toArea;document.getElementById("modalMoveDate").value=ex.date;document.getElementById("modalTimeSlot").value=ex.timeSlot;document.getElementById("modalNumDroops").value=ex.numDroops;document.getElementById("modalStatus").value=ex.status;document.getElementById("modalNotes").value=ex.notes||"";}
+else{document.getElementById("modalClientName").value="";document.getElementById("modalClientPhone").value="";document.getElementById("modalFromArea").value="";document.getElementById("modalToArea").value="";document.getElementById("modalMoveDate").value=movingCurrentDate;document.getElementById("modalTimeSlot").value="صباحاً";document.getElementById("modalNumDroops").value="1";document.getElementById("modalStatus").value="pending";document.getElementById("modalNotes").value="";}
+document.getElementById("modalTruck").innerHTML=TRUCKS.map(x=>`<option value="${x}" ${x===t?'selected':''}>${x}</option>`).join('');
+updatePrice();document.getElementById("bookingModal").style.display="flex";
+}
+
+function updatePrice(){
+const f=document.getElementById("modalFromArea").value;const t=document.getElementById("modalToArea").value;const d=parseInt(document.getElementById("modalNumDroops").value)||1;
+if(f&&t&&ALL_AREAS.includes(f)&&ALL_AREAS.includes(t)){const p=calculateTripPrice(f,t);document.getElementById("modalPriceDisplay").innerHTML=`💰 السعر: ${p} د.ك للدرب | الإجمالي: ${p*d} د.ك`;}
+else document.getElementById("modalPriceDisplay").innerHTML=`💰 اختر المنطقتين`;
+}
+
+function saveMovingBooking(){
+const cn=document.getElementById("modalClientName").value.trim(),ph=document.getElementById("modalClientPhone").value.trim();
+const fa=document.getElementById("modalFromArea").value,ta=document.getElementById("modalToArea").value;
+const dt=document.getElementById("modalMoveDate").value,ts=document.getElementById("modalTimeSlot").value;
+const nd=document.getElementById("modalNumDroops").value,tr=document.getElementById("modalTruck").value;
+const st=document.getElementById("modalStatus").value,nt=document.getElementById("modalNotes").value;
+if(!cn||!ph||!fa||!ta||!dt||!tr){alert("املأ الحقول");return;}
+const p=calculateTripPrice(fa,ta),tp=p*parseInt(nd);
+if(st!=='cancelled'&&!isTruckAvailable(tr,dt,ts,currentEditId)){alert(`السيارة ${tr} غير متاحة`);return;}
+const now=new Date().toLocaleString('ar-KW');let act="";
+if(currentEditId){const i=movingBookings.findIndex(b=>b.id===currentEditId);if(i!==-1){const o=movingBookings[i];movingBookings[i]={...o,clientName:cn,phone:ph,fromArea:fa,toArea:ta,date:dt,timeSlot:ts,numDroops:nd,truck:tr,status:st,notes:nt,pricePerDrop:p,totalPrice:tp,modifyHistory:`${o.modifyHistory||''}\n✏️ ${now}`};act="تعديل حجز";logAction(act,"update",{clientName:cn,truck:tr});}}
+else{movingBookings.push({id:Date.now(),clientName:cn,phone:ph,fromArea:fa,toArea:ta,date:dt,timeSlot:ts,numDroops:nd,truck:tr,status:st,notes:nt,pricePerDrop:p,totalPrice:tp,modifyHistory:`✅ ${now}`});act="حجز جديد";logAction(act,"create",{clientName:cn,truck:tr});}
+persistData();renderMovingOnly();closeModal();sendEmailToAll(act,{cn,ph,fa,ta,dt,tr,tp},"Moving");alert("✅ تم الحفظ");
+}
+function editMovingBooking(id){const b=movingBookings.find(x=>x.id===id);if(b)openMovingModal(b.truck,b);}
+function deleteMoving(id){if(!confirm("حذف؟"))return;const b=movingBookings.find(x=>x.id===id);movingBookings=movingBookings.filter(x=>x.id!==id);persistData();renderMovingOnly();logAction("حذف حجز","delete",{id});}
+
+function renderMovingTable(){
+document.getElementById("movingStats").innerHTML=`<div class="stat-card"><i class="fas fa-truck"></i><h3>${movingBookings.filter(b=>b.date===movingCurrentDate&&b.status!=='cancelled').length}</h3><p>نقل اليوم</p></div><div class="stat-card"><i class="fas fa-users"></i><h3>${movingBookings.length}</h3><p>الإجمالي</p></div>`;
+if(currentUser?.role==='driver'){document.getElementById("movingHistorySection").style.display="block";document.getElementById("movingAllClients").style.display="none";
+const mb=movingBookings.filter(b=>b.truck===currentUser.truck).sort((a,b)=>new Date(b.date)-new Date(a.date));
+const tb=document.getElementById("movingHistoryBody");tb.innerHTML="";
+document.getElementById("movingSelectedInfo").style.display="block";
+document.getElementById("movingSelectedInfo").innerHTML=`<i class="fas fa-truck"></i> <strong>${currentUser.truck}</strong> - ${mb.length} حجز`;
+mb.forEach((b,i)=>{const r=tb.insertRow();r.insertCell(0).innerText=i+1;r.insertCell(1).innerText=b.date;r.insertCell(2).innerText=b.timeSlot;r.insertCell(3).innerText=b.truck;r.insertCell(4).innerText=b.fromArea;r.insertCell(5).innerText=b.toArea;r.insertCell(6).innerText=`${b.numDroops} درب`;r.insertCell(7).innerText=`${b.pricePerDrop} د.ك`;r.insertCell(8).innerText=`${b.totalPrice} د.ك`;const sm={confirmed:'تأكيد',pending:'انتظار',cancelled:'كنسل'};r.insertCell(9).innerHTML=`<span class="status-badge status-${b.status}">${sm[b.status]||b.status}</span>`;r.insertCell(10).innerText=b.notes||"-";r.insertCell(11).innerText="-";r.insertCell(12).innerText="-";});}
+else showAllMovingClients();
+}
+function renderMovingOnly(){renderMovingTrucks();renderMovingTable();renderMovingCalendar();}
+
+// ============= Survey =============
+function renderSurveyTimeSlots(){
+const c=document.getElementById("surveyTimeSlots");if(!c)return;c.innerHTML="";
+const db=surveyBookings.filter(b=>b.date===surveyCurrentDate);
+SURVEY_TIMES.forEach(t=>{const ib=db.some(b=>b.timeSlot===t);const s=document.createElement("div");s.className=`time-slot ${ib?'booked':'available'}`;s.innerHTML=`<i class="fas fa-clock"></i> ${t}`;if(!ib)s.onclick=()=>openSurveyModal(t);c.appendChild(s);});
+document.getElementById("surveySelectedDate").innerHTML=formatDate(surveyCurrentDate);
+document.getElementById("surveyCurrentDate").innerHTML=formatDate(surveyCurrentDate);
+document.getElementById("surveyDatePicker").value=surveyCurrentDate;
+}
+function renderSurveyTable(){
+const tb=document.getElementById("surveyTbody");if(!tb)return;tb.innerHTML="";
+surveyBookings.filter(b=>b.date===surveyCurrentDate).forEach((b,i)=>{const r=tb.insertRow();r.insertCell(0).innerText=i+1;r.insertCell(1).innerText=b.clientName;r.insertCell(2).innerText=b.phone;r.insertCell(3).innerText=b.address;r.insertCell(4).innerText=b.timeSlot;r.insertCell(5).innerText=b.notes||"-";r.insertCell(6).innerHTML=`<button onclick="deleteSurvey(${b.id})" style="background:#dc2626;padding:4px 8px;">حذف</button>`;});
+document.getElementById("surveyStats").innerHTML=`<div class="stat-card"><i class="fas fa-clipboard-list"></i><h3>${surveyBookings.filter(b=>b.date===surveyCurrentDate).length}</h3><p>اليوم</p></div><div class="stat-card"><i class="fas fa-calendar-alt"></i><h3>${surveyBookings.length}</h3><p>الإجمالي</p></div>`;
+}
+function openSurveyModal(t){
+const cn=prompt("اسم العميل:");if(!cn)return;const ph=prompt("رقم الجوال:");if(!ph)return;
+const ad=prompt("العنوان:");if(!ad)return;const nt=prompt("ملاحظات:")||"";
+surveyBookings.push({id:Date.now(),clientName:cn,phone:ph,address:ad,date:surveyCurrentDate,timeSlot:t,notes:nt});
+persistData();renderSurveyTimeSlots();renderSurveyTable();logAction("معاينة جديدة","create",{cn,ph});sendEmailToAll("معاينة",{cn,ph},"Survey");alert("✅ تم");
+}
+function deleteSurvey(id){if(!confirm("حذف؟"))return;surveyBookings=surveyBookings.filter(x=>x.id!==id);persistData();renderSurveyTimeSlots();renderSurveyTable();logAction("حذف معاينة","delete",{id});}
+
+// ============= Delivery =============
+function renderDeliveryTimeSlots(){
+const c=document.getElementById("deliveryTimeSlots");if(!c)return;c.innerHTML="";
+const db=deliveryBookings.filter(b=>b.date===deliveryCurrentDate);
+DELIVERY_TIMES.forEach(t=>{const ib=db.some(b=>b.timeSlot===t);const s=document.createElement("div");s.className=`time-slot ${ib?'booked':'available'}`;s.innerHTML=`<i class="fas fa-clock"></i> ${t}`;if(!ib)s.onclick=()=>openDeliveryModal(t);c.appendChild(s);});
+document.getElementById("deliverySelectedDate").innerHTML=formatDate(deliveryCurrentDate);
+document.getElementById("deliveryCurrentDate").innerHTML=formatDate(deliveryCurrentDate);
+document.getElementById("deliveryDatePicker").value=deliveryCurrentDate;
+}
+
+function renderDeliveryTable(){
+const tb=document.getElementById("deliveryTbody");if(!tb)return;tb.innerHTML="";
+deliveryBookings.filter(b=>b.date===deliveryCurrentDate).forEach((b,i)=>{const r=tb.insertRow();
+r.insertCell(0).innerText=i+1;r.insertCell(1).innerText=b.clientName;r.insertCell(2).innerText=b.phone;
+r.insertCell(3).innerText=b.address;r.insertCell(4).innerText=b.timeSlot;
+let mh='<div class="materials-list-inline">';
+if(b.materials&&b.materials.length>0){b.materials.forEach(m=>{mh+=`<span class="mat-line">${m.name} × ${m.qty} = ${m.total.toFixed(3)}</span> `;});}
+else mh+='<span style="color:#94a3b8;">لا توجد</span>';
+mh+='</div>';r.insertCell(5).innerHTML=mh;
+r.insertCell(6).innerHTML=`<strong style="color:#0a1a2f;">${(b.totalAmount||0).toFixed(3)} د.ك</strong>`;
+const sm={confirmed:'✅ تأكيد',pending:'⏳ انتظار',cancelled:'❌ كنسل',delivered:'🚚 تم التوصيل'};
+r.insertCell(7).innerHTML=`<span class="status-badge status-${b.status}">${sm[b.status]||b.status}</span>`;
+r.insertCell(8).innerHTML=`<button onclick="editDeliveryBooking(${b.id})" style="background:#eab308;padding:4px 8px;">تعديل</button><button onclick="deleteDelivery(${b.id})" style="background:#dc2626;padding:4px 8px;">حذف</button>`;});
+const tc=deliveryBookings.filter(b=>b.date===deliveryCurrentDate).length;
+const tr=deliveryBookings.filter(b=>b.date===deliveryCurrentDate).reduce((s,b)=>s+(b.totalAmount||0),0);
+document.getElementById("deliveryStats").innerHTML=`<div class="stat-card"><i class="fas fa-box"></i><h3>${tc}</h3><p>توصيل اليوم</p></div><div class="stat-card"><i class="fas fa-calendar-alt"></i><h3>${deliveryBookings.length}</h3><p>الإجمالي</p></div><div class="stat-card"><i class="fas fa-coins"></i><h3>${tr.toFixed(3)}</h3><p>إيرادات اليوم</p></div>`;
+}
+
+function openDeliveryModal(t,ex=null){
+currentDeliveryEditId=ex?.id||null;
+document.getElementById("deliveryModalTitle").innerHTML=ex?`✏️ تعديل طلب - ${ex.clientName}`:`➕ طلب مواد جديد`;
+const ts=document.getElementById("dmTimeSlot");
+ts.innerHTML=DELIVERY_TIMES.map(x=>`<option value="${x}" ${ex?.timeSlot===x||(!ex&&x===t)?'selected':''}>${x}</option>`).join('');
+document.getElementById("dmClientName").value=ex?.clientName||"";
+document.getElementById("dmClientPhone").value=ex?.phone||"";
+document.getElementById("dmAddress").value=ex?.address||"";
+document.getElementById("dmDate").value=ex?.date||deliveryCurrentDate;
+document.getElementById("dmStatus").value=ex?.status||"pending";
+document.getElementById("dmNotes").value=ex?.notes||"";
+buildMaterialsTable(ex?.materials||[]);
+document.getElementById("deliveryModal").style.display="flex";
+}
+
+function buildMaterialsTable(sel){
+const tb=document.getElementById("dmMaterialsBody");tb.innerHTML="";
+MATERIALS.forEach(m=>{const ex=sel.find(s=>s.id===m.id);const q=ex?.qty||0;const t=q*m.price;
+const r=tb.insertRow();r.innerHTML=`<td style="text-align:right;padding-right:10px;">${m.name}</td><td>${m.unit}</td><td>${m.price.toFixed(3)}</td><td><input type="number" min="0" step="1" value="${q}" data-mat-id="${m.id}" data-price="${m.price}" class="dm-qty-input"></td><td class="mat-total" data-mat-total="${m.id}">${t.toFixed(3)}</td>`;});
+document.querySelectorAll(".dm-qty-input").forEach(i=>i.addEventListener("input",updateMaterialsTotals));
+updateMaterialsTotals();
+}
+
+function updateMaterialsTotals(){
+let g=0;
+document.querySelectorAll(".dm-qty-input").forEach(i=>{const q=parseFloat(i.value)||0;const p=parseFloat(i.dataset.price)||0;const t=q*p;const c=document.querySelector(`[data-mat-total="${i.dataset.matId}"]`);if(c)c.innerText=t.toFixed(3);g+=t;});
+document.getElementById("dmGrandTotal").innerText=g.toFixed(3);
+}
+
+function collectMaterialsFromTable(){
+const r=[];
+document.querySelectorAll(".dm-qty-input").forEach(i=>{const q=parseFloat(i.value)||0;if(q>0){const mid=i.dataset.matId;const m=MATERIALS.find(x=>x.id===mid);if(m)r.push({id:m.id,name:m.name,unit:m.unit,price:m.price,qty:q,total:q*m.price});}});
+return r;
+}
+
+function saveDeliveryBooking(){
+const cn=document.getElementById("dmClientName").value.trim(),ph=document.getElementById("dmClientPhone").value.trim();
+const ad=document.getElementById("dmAddress").value.trim(),dt=document.getElementById("dmDate").value;
+const ts=document.getElementById("dmTimeSlot").value,st=document.getElementById("dmStatus").value,nt=document.getElementById("dmNotes").value.trim();
+if(!cn||!ph||!ad||!dt){alert("املأ الحقول");return;}
+const mats=collectMaterialsFromTable();
+if(!mats.length){alert("⚠️ اختر مادة واحدة على الأقل");return;}
+const ta=mats.reduce((s,m)=>s+m.total,0);
+if(currentDeliveryEditId){const i=deliveryBookings.findIndex(b=>b.id===currentDeliveryEditId);if(i!==-1){deliveryBookings[i]={...deliveryBookings[i],clientName:cn,phone:ph,address:ad,date:dt,timeSlot:ts,status:st,notes:nt,materials:mats,totalAmount:ta};logAction("تعديل طلب","update",{cn,ta});}}
+else{deliveryBookings.push({id:Date.now(),clientName:cn,phone:ph,address:ad,date:dt,timeSlot:ts,status:st,notes:nt,materials:mats,totalAmount:ta});logAction("طلب مواد جديد","create",{cn,ph,ta});}
+persistData();renderDeliveryTimeSlots();renderDeliveryTable();closeDeliveryModal();
+sendEmailToAll("طلب مواد",{cn,ph,mats,ta},"Delivery");
+alert(`✅ تم - الإجمالي: ${ta.toFixed(3)} د.ك`);
+}
+
+function editDeliveryBooking(id){const b=deliveryBookings.find(x=>x.id===id);if(b)openDeliveryModal(b.timeSlot,b);}
+function deleteDelivery(id){if(!confirm("حذف؟"))return;const b=deliveryBookings.find(x=>x.id===id);deliveryBookings=deliveryBookings.filter(x=>x.id!==id);persistData();renderDeliveryTimeSlots();renderDeliveryTable();logAction("حذف توصيل","delete",{id});}
+function closeDeliveryModal(){document.getElementById("deliveryModal").style.display="none";currentDeliveryEditId=null;}
+window.closeDeliveryModal=closeDeliveryModal;window.editDeliveryBooking=editDeliveryBooking;
+
+// ============= Reports =============
+function exportMovingReport(){const dt=document.getElementById("reportDate").value;const data=movingBookings.filter(b=>b.date===dt&&b.status!=='cancelled').map((b,i)=>({"م":i+1,"العميل":b.clientName,"الجوال":b.phone,"من":b.fromArea,"إلى":b.toArea,"التاريخ":b.date,"الموعد":b.timeSlot,"السيارة":b.truck,"الدروب":b.numDroops,"السعر/درب":b.pricePerDrop,"الإجمالي":b.totalPrice,"الحالة":b.status,"ملاحظات":b.notes||""}));if(!data.length){alert("لا توجد بيانات");return;}const ws=XLSX.utils.json_to_sheet(data);const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"Moving");XLSX.writeFile(wb,`Moving_${dt}.xlsx`);logAction("تصدير النقل","export",{dt});}
+function exportSurveyReport(){const dt=document.getElementById("reportDate").value;const data=surveyBookings.filter(b=>b.date===dt).map((b,i)=>({"م":i+1,"العميل":b.clientName,"الجوال":b.phone,"العنوان":b.address,"الموعد":b.timeSlot,"ملاحظات":b.notes||""}));if(!data.length){alert("لا توجد");return;}const ws=XLSX.utils.json_to_sheet(data);const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"Survey");XLSX.writeFile(wb,`Survey_${dt}.xlsx`);logAction("تصدير المعاينة","export",{dt});}
+function exportDeliveryReport(){const dt=document.getElementById("reportDate").value;const f=deliveryBookings.filter(b=>b.date===dt);if(!f.length){alert("لا توجد");return;}
+const s=f.map((b,i)=>({"م":i+1,"العميل":b.clientName,"الجوال":b.phone,"العنوان":b.address,"الموعد":b.timeSlot,"عدد المواد":b.materials?.length||0,"الإجمالي":b.totalAmount||0,"الحالة":b.status,"ملاحظات":b.notes||""}));
+const d=[];let idx=1;f.forEach(b=>{(b.materials||[]).forEach(m=>{d.push({"م":idx++,"العميل":b.clientName,"التاريخ":b.date,"المادة":m.name,"الوحدة":m.unit,"السعر":m.price,"الكمية":m.qty,"الإجمالي":m.total});});});
+const ws1=XLSX.utils.json_to_sheet(s);const ws2=XLSX.utils.json_to_sheet(d.length?d:[{"ملاحظة":"لا توجد تفاصيل"}]);
+const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws1,"ملخص");XLSX.utils.book_append_sheet(wb,ws2,"تفاصيل المواد");
+XLSX.writeFile(wb,`Delivery_${dt}.xlsx`);logAction("تصدير التوصيل","export",{dt});}
+function exportTeamsReport(){const dt=document.getElementById("reportDate").value;const m=movingBookings.filter(b=>b.date===dt&&b.status!=='cancelled');const data=m.map((b,i)=>({"م":i+1,"الفريق":b.truck,"العميل":b.clientName,"من":b.fromArea,"إلى":b.toArea,"الدروب":b.numDroops,"الموعد":b.timeSlot,"الإجمالي":`${b.totalPrice} د.ك`}));if(!data.length){alert("لا توجد");return;}const ws=XLSX.utils.json_to_sheet(data);const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"Teams");XLSX.writeFile(wb,`Teams_${dt}.xlsx`);logAction("تصدير الفرق","export",{dt});}
+function updateTeamsReport(dt){const m=movingBookings.filter(b=>b.date===dt&&b.status!=='cancelled');const tb=document.getElementById("teamsReportBody");if(!tb)return;tb.innerHTML="";m.forEach(b=>{const r=tb.insertRow();r.insertCell(0).innerText=b.truck;r.insertCell(1).innerText=b.numDroops;r.insertCell(2).innerText=b.clientName;r.insertCell(3).innerText=b.fromArea;r.insertCell(4).innerText=b.toArea;r.insertCell(5).innerText=b.timeSlot;});const s=surveyBookings.filter(b=>b.date===dt).length;const d=deliveryBookings.filter(b=>b.date===dt).length;const dr=deliveryBookings.filter(b=>b.date===dt).reduce((s,b)=>s+(b.totalAmount||0),0);const mr=m.reduce((s,b)=>s+(b.totalPrice||0),0);document.getElementById("dailySummary").innerHTML=`<strong>📊 ${dt}</strong><br>🚛 النقل: ${m.length} (${mr} د.ك)<br>📋 المعاينة: ${s}<br>📦 التوصيل: ${d} (${dr.toFixed(3)} د.ك)<br>💰 الإجمالي: ${(mr+dr).toFixed(3)} د.ك`;}
+
+// ============= Persist =============
+function persistData(){localStorage.setItem("pm_moving",JSON.stringify(movingBookings));localStorage.setItem("pm_survey",JSON.stringify(surveyBookings));localStorage.setItem("pm_delivery",JSON.stringify(deliveryBookings));localStorage.setItem("pm_trucks_off",JSON.stringify(trucksOff));}
+function loadData(){movingBookings=JSON.parse(localStorage.getItem("pm_moving")||"[]");surveyBookings=JSON.parse(localStorage.getItem("pm_survey")||"[]");deliveryBookings=JSON.parse(localStorage.getItem("pm_delivery")||"[]");trucksOff=JSON.parse(localStorage.getItem("pm_trucks_off")||"[]");renderAll();}
+function renderAll(){renderMovingOnly();renderSurveyTimeSlots();renderSurveyTable();renderDeliveryTimeSlots();renderDeliveryTable();const td=new Date().toISOString().slice(0,10);document.getElementById("reportDate").value=td;updateTeamsReport(td);if(currentUser?.role==='admin'){renderUsersTable();renderAuditTable();fillAuditUserFilter();}applyRoleUI();}
+
+function closeModal(){document.getElementById("bookingModal").style.display="none";currentEditId=null;}
+function closeSettings(){document.getElementById("settingsModal").style.display="none";}
+function closeUserModal(){document.getElementById("userModal").style.display="none";editingUserId=null;}
+
+function populateAreas(){const f=document.getElementById("modalFromArea"),t=document.getElementById("modalToArea");const o='<option value="">-- اختر --</option>'+ALL_AREAS.map(a=>`<option value="${a}">${a}</option>`).join('');const fv=f.value,tv=t.value;f.innerHTML=o;t.innerHTML=o;if(fv)f.value=fv;if(tv)t.value=tv;f.onchange=updatePrice;t.onchange=updatePrice;document.getElementById("modalNumDroops").onchange=updatePrice;}
+
+// ============= Settings =============
+function rebuildAllAreas(){ALL_AREAS=[...AREAS_PRICE_B,...AREAS_PRICE_C,...AREAS_PRICE_D];}
+function loadSettings(){const s=JSON.parse(localStorage.getItem("pm_settings")||"{}");
+if(s.darkMode)document.body.classList.add("dark-mode");document.getElementById("darkModeToggle").checked=!!s.darkMode;
+if(s.trucksCount)TRUCKS=Array.from({length:s.trucksCount},(_,i)=>`MO${i+1}`);
+if(s.PRICE_B)PRICE_B=s.PRICE_B;if(s.PRICE_C)PRICE_C=s.PRICE_C;if(s.PRICE_D)PRICE_D=s.PRICE_D;
+if(s.AREAS_B)AREAS_PRICE_B=s.AREAS_B;if(s.AREAS_C)AREAS_PRICE_C=s.AREAS_C;if(s.AREAS_D)AREAS_PRICE_D=s.AREAS_D;
+if(s.SURVEY_TIMES)SURVEY_TIMES=s.SURVEY_TIMES;if(s.DELIVERY_TIMES)DELIVERY_TIMES=s.DELIVERY_TIMES;
+if(s.MATERIALS)MATERIALS=s.MATERIALS;rebuildAllAreas();fillSettingsInputs();}
+function saveSettings(){localStorage.setItem("pm_settings",JSON.stringify({darkMode:document.body.classList.contains("dark-mode"),trucksCount:TRUCKS.length,PRICE_B,PRICE_C,PRICE_D,AREAS_B:AREAS_PRICE_B,AREAS_C:AREAS_PRICE_C,AREAS_D:AREAS_PRICE_D,SURVEY_TIMES,DELIVERY_TIMES,MATERIALS}));}
+function fillSettingsInputs(){document.getElementById("trucksCountLabel").innerText=TRUCKS.length;document.getElementById("trucksCountInput").value=TRUCKS.length;document.getElementById("priceB").value=PRICE_B;document.getElementById("priceC").value=PRICE_C;document.getElementById("priceD").value=PRICE_D;document.getElementById("surveyTimesInput").value=SURVEY_TIMES.join(", ");document.getElementById("deliveryTimesInput").value=DELIVERY_TIMES.join(", ");renderAreaList();renderMaterialsList();}
+function renderAreaList(){const c=document.getElementById("areaListContainer");const mk=(a,cat)=>a.map((x,i)=>`<span class="area-chip"><span class="price-badge">${cat}</span>${x}<i class="fas fa-times" onclick="removeArea('${cat}',${i})"></i></span>`).join('');c.innerHTML=mk(AREAS_PRICE_B,'B')+mk(AREAS_PRICE_C,'C')+mk(AREAS_PRICE_D,'D');}
+function renderMaterialsList(){const c=document.getElementById("materialsListContainer");if(!c)return;c.innerHTML=MATERIALS.map((m,i)=>`<span class="area-chip"><span class="price-badge">${m.price.toFixed(3)}</span>${m.name} <small style="opacity:.7;">(${m.unit})</small><i class="fas fa-times" onclick="removeMaterial(${i})"></i></span>`).join('');}
+window.removeMaterial=(i)=>{if(!confirm(`حذف "${MATERIALS[i].name}"؟`))return;const r=MATERIALS[i];MATERIALS.splice(i,1);saveSettings();renderMaterialsList();logAction(`حذف مادة: ${r.name}`,"delete",{r});};
+function addMaterial(){const n=document.getElementById("newMaterialName").value.trim();const u=document.getElementById("newMaterialUnit").value;const p=parseFloat(document.getElementById("newMaterialPrice").value);if(!n)return alert("أدخل اسم");if(!p||p<=0)return alert("أدخل سعر");if(MATERIALS.find(m=>m.name.toLowerCase()===n.toLowerCase()))return alert("موجودة");MATERIALS.push({id:'mat'+Date.now(),name:n,unit:u,price:p});saveSettings();renderMaterialsList();logAction(`إضافة مادة: ${n}`,"create",{n,u,p});document.getElementById("newMaterialName").value="";document.getElementById("newMaterialPrice").value="";}
+function openSettings(){fillSettingsInputs();document.getElementById("settingsModal").style.display="flex";}
+window.removeArea=(cat,i)=>{if(!confirm("حذف؟"))return;if(cat==='B')AREAS_PRICE_B.splice(i,1);if(cat==='C')AREAS_PRICE_C.splice(i,1);if(cat==='D')AREAS_PRICE_D.splice(i,1);rebuildAllAreas();saveSettings();renderAreaList();populateAreas();};
+
+// ============= Auth =============
+let users=[],auditLog=[],currentUser=null,editingUserId=null;
+function hashPassword(p){return CryptoJS.SHA256(p).toString();}
+function loadUsers(){
+const stored=localStorage.getItem("pm_users_v2");
+if(stored){try{const p=JSON.parse(stored);if(p&&p.length>0){users=p;if(!users.find(u=>u.email==='admin@packmove.com')){users.push({id:1,name:"المدير العام",email:"admin@packmove.com",passwordHash:hashPassword("admin123"),role:"admin",truck:null,status:"active",lastLogin:null});saveUsers();}return;}}catch(e){console.error(e);}}
+users=[
+{id:1,name:"المدير العام",email:"admin@packmove.com",passwordHash:hashPassword("admin123"),role:"admin",truck:null,status:"active",lastLogin:null},
+{id:2,name:"موظف الحجوزات",email:"booking@packmove.com",passwordHash:hashPassword("booking123"),role:"booking",truck:null,status:"active",lastLogin:null},
+{id:3,name:"موظف المعاينة",email:"survey@packmove.com",passwordHash:hashPassword("survey123"),role:"survey",truck:null,status:"active",lastLogin:null},
+{id:4,name:"السائق أحمد",email:"driver@packmove.com",passwordHash:hashPassword("driver123"),role:"driver",truck:"MO1",status:"active",lastLogin:null}
+];saveUsers();}
+function saveUsers(){localStorage.setItem("pm_users_v2",JSON.stringify(users));}
+function loadAuditLog(){auditLog=JSON.parse(localStorage.getItem("pm_audit")||"[]");}
+function saveAuditLog(){if(auditLog.length>2000)auditLog=auditLog.slice(-2000);localStorage.setItem("pm_audit",JSON.stringify(auditLog));}
+function logAction(a,t,d){if(!currentUser)return;auditLog.push({id:Date.now()+Math.random(),timestamp:new Date().toISOString(),userId:currentUser.id,userName:currentUser.name,userRole:currentUser.role,action:a,type:t,details:d||{}});saveAuditLog();if(currentUser.role==='admin'&&document.getElementById("auditTab")?.style.display==='block')renderAuditTable();}
+
+function handleLogin(e){
+e.preventDefault();
+const em=document.getElementById("loginEmail").value.trim().toLowerCase();
+const pw=document.getElementById("loginPassword").value;
+const eb=document.getElementById("loginError");eb.style.display="none";
+const u=users.find(x=>x.email.toLowerCase()===em);
+if(!u){eb.textContent="❌ البريد غير مسجل";eb.style.display="block";return;}
+if(u.status==='inactive'){eb.textContent="🚫 الحساب موقوف";eb.style.display="block";return;}
+if(u.passwordHash!==hashPassword(pw)){eb.textContent="❌ كلمة المرور خاطئة";eb.style.display="block";return;}
+currentUser=u;u.lastLogin=new Date().toISOString();saveUsers();
+sessionStorage.setItem("pm_user",JSON.stringify({id:u.id}));
+logAction("تسجيل دخول","login",{email:u.email});showMainApp();
+}
+
+function showMainApp(){
+document.getElementById("loginOverlay").style.display="none";
+document.getElementById("userBadge").style.display="inline-flex";
+document.getElementById("userNameSpan").innerText=currentUser.name;
+const rt=document.getElementById("userRoleTag");
+const rn={admin:"مدير",booking:"حجوزات",survey:"معاينة",driver:"سائق"};
+rt.innerText=rn[currentUser.role];rt.className="role-tag "+currentUser.role;
+document.body.className=document.body.className.replace(/role-\w+/g,"").trim();
+document.body.classList.add("role-"+currentUser.role);
+applyRoleUI();renderAll();
+}
+
+function applyRoleUI(){
+if(!currentUser)return;
+document.querySelectorAll(".tabs .tab-btn").forEach(b=>{
+const t=b.dataset.tab;let s=false;
+if(currentUser.role==='admin')s=true;
+else if(currentUser.role==='booking')s=(t==='moving'||t==='delivery');
+else if(currentUser.role==='survey')s=(t==='survey');
+else if(currentUser.role==='driver')s=(t==='moving');
+b.style.display=s?'inline-block':'none';});
+const nb=document.getElementById("newMovingBtn");if(nb)nb.style.display=(currentUser.role==='driver'||currentUser.role==='survey')?'none':'inline-block';
+document.querySelectorAll(".calendar").forEach(c=>c.style.display=currentUser.role==='driver'?'none':'block');
+const inf=document.getElementById("driverTruckInfo");
+if(inf){if(currentUser.role==='driver'){inf.style.display="block";document.getElementById("driverTruckName").innerText=currentUser.truck||"-";}else inf.style.display="none";}
+document.getElementById("customerService").style.display=(currentUser.role==='driver'||currentUser.role==='survey')?'none':'inline-block';
+}
+
+function logout(){if(!currentUser)return;if(!confirm("خروج؟"))return;logAction("خروج","logout",{email:currentUser.email});sessionStorage.removeItem("pm_user");currentUser=null;document.getElementById("loginOverlay").style.display="flex";document.getElementById("userBadge").style.display="none";document.getElementById("loginEmail").value="";document.getElementById("loginPassword").value="";document.body.className=document.body.className.replace(/role-\w+/g,"").trim();}
+
+function restoreSession(){const s=sessionStorage.getItem("pm_user");if(!s)return false;try{const d=JSON.parse(s);const u=users.find(x=>x.id===d.id);if(u&&u.status==='active'){currentUser=u;showMainApp();return true;}}catch(e){}return false;}
+
+// ============= Users =============
+function renderUsersTable(){if(currentUser?.role!=='admin')return;const tb=document.getElementById("usersTbody");if(!tb)return;const s=(document.getElementById("searchUser")?.value||"").toLowerCase();const f=users.filter(u=>u.name.toLowerCase().includes(s)||u.email.toLowerCase().includes(s));const rn={admin:"👑 مدير",booking:"📅 حجوزات",survey:"📋 معاينة",driver:"🚛 سائق"};tb.innerHTML="";f.forEach((u,i)=>{const r=tb.insertRow();r.insertCell(0).innerText=i+1;r.insertCell(1).innerText=u.name;r.insertCell(2).innerText=u.email;r.insertCell(3).innerText=rn[u.role]||u.role;r.insertCell(4).innerText=u.truck||"-";r.insertCell(5).innerHTML=u.status==='active'?'<span class="badge-active">✅ نشط</span>':'<span class="badge-inactive">🚫 موقوف</span>';r.insertCell(6).innerText=u.lastLogin?new Date(u.lastLogin).toLocaleString('ar-KW'):"لم يدخل";r.insertCell(7).innerHTML=`<button onclick="editUser(${u.id})" style="background:#eab308;padding:4px 8px;font-size:.75rem;">تعديل</button><button onclick="deleteUser(${u.id})" style="background:#dc2626;padding:4px 8px;font-size:.75rem;">حذف</button>`;});}
+function openUserModal(u=null){editingUserId=u?.id||null;document.getElementById("userModalTitle").innerHTML=u?'<i class="fas fa-user-edit"></i> تعديل':'<i class="fas fa-user-plus"></i> مستخدم جديد';document.getElementById("userName").value=u?.name||"";document.getElementById("userEmail").value=u?.email||"";document.getElementById("userPassword").value="";document.getElementById("userPassword").placeholder=u?"اتركها فاضية":"كلمة المرور *";document.getElementById("userRole").value=u?.role||"";document.getElementById("userStatus").value=u?.status||"active";document.getElementById("userTruck").innerHTML='<option value="">-- السيارة --</option>'+TRUCKS.map(t=>`<option value="${t}" ${u?.truck===t?'selected':''}>${t}</option>`).join('');toggleTruckField();document.getElementById("userModal").style.display="flex";}
+function toggleTruckField(){const r=document.getElementById("userRole").value;document.getElementById("userTruck").style.display=r==='driver'?'block':'none';}
+function saveUser(){const n=document.getElementById("userName").value.trim();const e=document.getElementById("userEmail").value.trim().toLowerCase();const p=document.getElementById("userPassword").value;const r=document.getElementById("userRole").value;const s=document.getElementById("userStatus").value;const t=document.getElementById("userTruck").value;if(!n||!e||!r){alert("املأ");return;}if(!editingUserId&&!p){alert("كلمة المرور مطلوبة");return;}if(r==='driver'&&!t){alert("اختر السيارة");return;}if(users.find(u=>u.email.toLowerCase()===e&&u.id!==editingUserId)){alert("مستخدم");return;}
+if(editingUserId){const u=users.find(x=>x.id===editingUserId);if(!u)return;u.name=n;u.email=e;u.role=r;u.status=s;u.truck=r==='driver'?t:null;if(p)u.passwordHash=hashPassword(p);saveUsers();logAction(`تعديل: ${n}`,"update",{id:u.id});}
+else{users.push({id:Date.now(),name:n,email:e,passwordHash:hashPassword(p),role:r,truck:r==='driver'?t:null,status:s,lastLogin:null});saveUsers();logAction(`إضافة: ${n}`,"create",{});}
+renderUsersTable();closeUserModal();alert("✅ تم");}
+function editUser(id){const u=users.find(x=>x.id===id);if(u)openUserModal(u);}
+function deleteUser(id){if(id===currentUser.id){alert("ما ينفعش");return;}const u=users.find(x=>x.id===id);if(!u||!confirm(`حذف ${u.name}؟`))return;users=users.filter(x=>x.id!==id);saveUsers();logAction(`حذف: ${u.name}`,"delete",{});renderUsersTable();}
+
+// ============= Audit =============
+function renderAuditTable(){if(currentUser?.role!=='admin')return;const tb=document.getElementById("auditTbody");if(!tb)return;const s=(document.getElementById("auditSearch")?.value||"").toLowerCase();const fa=document.getElementById("auditFilterAction")?.value||"";const fu=document.getElementById("auditFilterUser")?.value||"";const fd=document.getElementById("auditFilterDate")?.value||"";let f=[...auditLog].reverse();if(s)f=f.filter(a=>(a.action||"").toLowerCase().includes(s)||(a.userName||"").toLowerCase().includes(s));if(fa)f=f.filter(a=>a.type===fa);if(fu)f=f.filter(a=>a.userId===parseInt(fu));if(fd)f=f.filter(a=>a.timestamp.startsWith(fd));const tl={create:"إضافة",update:"تعديل",delete:"حذف",login:"دخول",logout:"خروج",export:"تصدير"};const rn={admin:"مدير",booking:"حجوزات",survey:"معاينة",driver:"سائق"};tb.innerHTML="";f.forEach((a,i)=>{const r=tb.insertRow();r.insertCell(0).innerText=i+1;r.insertCell(1).innerText=new Date(a.timestamp).toLocaleString('ar-KW');r.insertCell(2).innerText=a.userName;r.insertCell(3).innerText=rn[a.userRole]||a.userRole;r.insertCell(4).innerText=a.action;r.insertCell(5).innerHTML=`<span class="audit-action audit-${a.type}">${tl[a.type]||a.type}</span>`;r.insertCell(6).innerHTML=`<div style="font-size:.7rem;color:#64748b;max-width:200px;text-align:right;">${JSON.stringify(a.details).substring(0,100)}</div>`;});document.getElementById("auditCount").innerText=`إجمالي: ${f.length} من ${auditLog.length}`;}
+function fillAuditUserFilter(){const s=document.getElementById("auditFilterUser");if(!s)return;const c=s.value;s.innerHTML='<option value="">كل المستخدمين</option>'+users.map(u=>`<option value="${u.id}" ${c==u.id?'selected':''}>${u.name}</option>`).join('');}
+function clearAuditLog(){if(!confirm("⚠️ مسح؟"))return;if(!confirm("تأكيد!"))return;auditLog=[];saveAuditLog();renderAuditTable();logAction("مسح السجل","delete",{});}
+
+// ============= Events =============
+document.getElementById("loginForm").addEventListener("submit",handleLogin);
+document.getElementById("logoutBtn").addEventListener("click",logout);
+document.getElementById("addUserBtn").addEventListener("click",()=>openUserModal());
+document.getElementById("saveUserBtn").addEventListener("click",saveUser);
+document.getElementById("userRole").addEventListener("change",toggleTruckField);
+document.getElementById("searchUser").addEventListener("input",renderUsersTable);
+document.getElementById("auditSearch").addEventListener("input",renderAuditTable);
+document.getElementById("auditFilterAction").addEventListener("change",renderAuditTable);
+document.getElementById("auditFilterUser").addEventListener("change",renderAuditTable);
+document.getElementById("auditFilterDate").addEventListener("change",renderAuditTable);
+document.getElementById("auditClearFilters").addEventListener("click",()=>{document.getElementById("auditSearch").value="";document.getElementById("auditFilterAction").value="";document.getElementById("auditFilterUser").value="";document.getElementById("auditFilterDate").value="";renderAuditTable();});
+document.getElementById("clearAuditBtn").addEventListener("click",clearAuditLog);
+document.getElementById("openSettingsBtn").addEventListener("click",openSettings);
+document.getElementById("settingsModal").addEventListener("click",e=>{if(e.target.id==="settingsModal")closeSettings();});
+document.getElementById("darkModeToggle").addEventListener("change",e=>{document.body.classList.toggle("dark-mode",e.target.checked);saveSettings();});
+document.getElementById("saveTrucksCount").addEventListener("click",()=>{const n=parseInt(document.getElementById("trucksCountInput").value);if(n>0&&n<=60){TRUCKS=Array.from({length:n},(_,i)=>`MO${i+1}`);saveSettings();fillSettingsInputs();renderMovingOnly();logAction(`عدد السيارات: ${n}`,"update",{n});alert(`✅ ${n}`);}else alert("1-60");});
+document.getElementById("savePrices").addEventListener("click",()=>{PRICE_B=+document.getElementById("priceB").value||0;PRICE_C=+document.getElementById("priceC").value||0;PRICE_D=+document.getElementById("priceD").value||0;saveSettings();logAction("تعديل الأسعار","update",{});alert("✅");});
+document.getElementById("saveTimes").addEventListener("click",()=>{SURVEY_TIMES=document.getElementById("surveyTimesInput").value.split(",").map(s=>s.trim()).filter(Boolean);DELIVERY_TIMES=document.getElementById("deliveryTimesInput").value.split(",").map(s=>s.trim()).filter(Boolean);saveSettings();renderSurveyTimeSlots();renderDeliveryTimeSlots();logAction("تعديل المواعيد","update",{});alert("✅");});
+document.getElementById("addAreaBtn").addEventListener("click",()=>{const n=document.getElementById("newAreaName").value.trim();const c=document.getElementById("newAreaCategory").value;if(!n)return alert("أدخل الاسم");if(ALL_AREAS.includes(n))return alert("موجودة");if(c==='B')AREAS_PRICE_B.push(n);if(c==='C')AREAS_PRICE_C.push(n);if(c==='D')AREAS_PRICE_D.push(n);rebuildAllAreas();saveSettings();renderAreaList();populateAreas();logAction(`منطقة: ${n}`,"create",{});document.getElementById("newAreaName").value="";});
+document.getElementById("addMaterialBtn").addEventListener("click",addMaterial);
+document.getElementById("resetDataBtn").addEventListener("click",()=>{if(!confirm("⚠️ حذف كل البيانات؟"))return;if(!confirm("تأكيد!"))return;localStorage.removeItem("pm_moving");localStorage.removeItem("pm_survey");localStorage.removeItem("pm_delivery");localStorage.removeItem("pm_trucks_off");movingBookings=[];surveyBookings=[];deliveryBookings=[];trucksOff=[];persistData();renderAll();logAction("إعادة تعيين","delete",{});alert("✅");});
+document.getElementById("addEmailBtn").addEventListener("click",addEmail);
+
+window.removeEmail=removeEmail;window.closeModal=closeModal;window.closeSettings=closeSettings;window.closeUserModal=closeUserModal;
+window.editUser=editUser;window.deleteUser=deleteUser;window.editMovingBooking=editMovingBooking;window.deleteMoving=deleteMoving;
+window.deleteSurvey=deleteSurvey;window.deleteDelivery=deleteDelivery;window.showMovingClientHistory=showMovingClientHistory;
+window.openDeliveryModal=openDeliveryModal;window.saveDeliveryBooking=saveDeliveryBooking;window.removeMaterial=removeMaterial;
+
+document.getElementById("movingPrevDay").onclick=()=>{movingCurrentDate=new Date(new Date(movingCurrentDate).setDate(new Date(movingCurrentDate).getDate()-1)).toISOString().slice(0,10);renderMovingOnly();};
+document.getElementById("movingNextDay").onclick=()=>{movingCurrentDate=new Date(new Date(movingCurrentDate).setDate(new Date(movingCurrentDate).getDate()+1)).toISOString().slice(0,10);renderMovingOnly();};
+document.getElementById("movingToday").onclick=()=>{movingCurrentDate=new Date().toISOString().slice(0,10);renderMovingOnly();};
+document.getElementById("movingGoToDate").onclick=()=>{const v=document.getElementById("movingDatePicker").value;if(v){movingCurrentDate=v;renderMovingOnly();}};
+document.getElementById("searchMovingBtn").onclick=()=>{const t=document.getElementById("searchMoving").value;if(t){const m=movingBookings.find(b=>b.clientName.includes(t)||b.phone.includes(t));if(m)showMovingClientHistory(m.phone);else alert("لا يوجد");}else showAllMovingClients();};
+document.getElementById("showAllMovingBtn").onclick=()=>showAllMovingClients();
+document.getElementById("newMovingBtn").onclick=()=>openMovingModal(TRUCKS[0]);
+document.getElementById("confirmBookingBtn").onclick=saveMovingBooking;
+document.getElementById("movingPrevMonth").onclick=()=>{movingMonth--;if(movingMonth<0){movingMonth=11;movingYear--;}renderMovingCalendar();};
+document.getElementById("movingNextMonth").onclick=()=>{movingMonth++;if(movingMonth>11){movingMonth=0;movingYear++;}renderMovingCalendar();};
+document.getElementById("surveyPrevDay").onclick=()=>{surveyCurrentDate=new Date(new Date(surveyCurrentDate).setDate(new Date(surveyCurrentDate).getDate()-1)).toISOString().slice(0,10);renderSurveyTimeSlots();renderSurveyTable();};
+document.getElementById("surveyNextDay").onclick=()=>{surveyCurrentDate=new Date(new Date(surveyCurrentDate).setDate(new Date(surveyCurrentDate).getDate()+1)).toISOString().slice(0,10);renderSurveyTimeSlots();renderSurveyTable();};
+document.getElementById("surveyToday").onclick=()=>{surveyCurrentDate=new Date().toISOString().slice(0,10);renderSurveyTimeSlots();renderSurveyTable();};
+document.getElementById("surveyGoToDate").onclick=()=>{const v=document.getElementById("surveyDatePicker").value;if(v){surveyCurrentDate=v;renderSurveyTimeSlots();renderSurveyTable();}};
+document.getElementById("searchSurveyBtn").onclick=()=>renderSurveyTable();
+document.getElementById("newSurveyBtn").onclick=()=>openSurveyModal(SURVEY_TIMES[0]);
+document.getElementById("deliveryPrevDay").onclick=()=>{deliveryCurrentDate=new Date(new Date(deliveryCurrentDate).setDate(new Date(deliveryCurrentDate).getDate()-1)).toISOString().slice(0,10);renderDeliveryTimeSlots();renderDeliveryTable();};
+document.getElementById("deliveryNextDay").onclick=()=>{deliveryCurrentDate=new Date(new Date(deliveryCurrentDate).setDate(new Date(deliveryCurrentDate).getDate()+1)).toISOString().slice(0,10);renderDeliveryTimeSlots();renderDeliveryTable();};
+document.getElementById("deliveryToday").onclick=()=>{deliveryCurrentDate=new Date().toISOString().slice(0,10);renderDeliveryTimeSlots();renderDeliveryTable();};
+document.getElementById("deliveryGoToDate").onclick=()=>{const v=document.getElementById("deliveryDatePicker").value;if(v){deliveryCurrentDate=v;renderDeliveryTimeSlots();renderDeliveryTable();}};
+document.getElementById("searchDeliveryBtn").onclick=()=>renderDeliveryTable();
+document.getElementById("newDeliveryBtn").onclick=()=>openDeliveryModal(DELIVERY_TIMES[0]);
+document.getElementById("saveDeliveryBtn").addEventListener("click",saveDeliveryBooking);
+document.getElementById("exportMovingReport").onclick=()=>{const d=document.getElementById("reportDate").value;updateTeamsReport(d);exportMovingReport();};
+document.getElementById("exportSurveyReport").onclick=exportSurveyReport;
+document.getElementById("exportDeliveryReport").onclick=exportDeliveryReport;
+document.getElementById("exportTeamsReport").onclick=()=>{const d=document.getElementById("reportDate").value;updateTeamsReport(d);exportTeamsReport();};
+
+document.querySelectorAll(".tab-btn").forEach(b=>{b.onclick=()=>{document.querySelectorAll(".tab-btn").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.querySelectorAll(".tab-content").forEach(t=>t.style.display="none");const m={moving:"movingTab",survey:"surveyTab",delivery:"deliveryTab",report:"reportTab",users:"usersTab",audit:"auditTab"};const id=m[b.dataset.tab];if(id)document.getElementById(id).style.display="block";if(b.dataset.tab==="users")renderUsersTable();if(b.dataset.tab==="audit"){fillAuditUserFilter();renderAuditTable();}};});
+
+document.getElementById("bookingModal").addEventListener("click",e=>{if(e.target.id==="bookingModal")closeModal();});
+document.getElementById("deliveryModal").addEventListener("click",e=>{if(e.target.id==="deliveryModal")closeDeliveryModal();});
+document.getElementById("userModal").addEventListener("click",e=>{if(e.target.id==="userModal")closeUserModal();});
+
+// ============= Init =============
+loadSettings();populateAreas();loadEmails();loadUsers();loadAuditLog();loadData();
+window.addEventListener("DOMContentLoaded",()=>{if(!restoreSession())document.getElementById("loginOverlay").style.display="flex";});
+console.log("✅ النظام جاهز");
+console.log("👤 admin@packmove.com / admin123");
+console.log("👤 booking@packmove.com / booking123");
+console.log("👤 survey@packmove.com / survey123");
+console.log("👤 driver@packmove.com / driver123");
+</script>
+</body>
+</html>
